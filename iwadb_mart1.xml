@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<aqtmart:martModel xmlns:aqtmart="http://www.ibm.com/xmlns/prod/dwa" version="1.0">
+
+<mart name="iwadb_mart1">
+  <table name="geo" schema="dwa">
+    <column name="g_geoid"/>
+    <column name="g_name"/>
+    <column name="g_descr"/>
+  </table>
+  <table name="state" schema="dwa">
+    <column name="s_stateid"/>
+    <column name="s_name"/>
+    <column name="s_geoid"/>
+    <column name="s_descr"/>
+  </table>
+  <table name="supplier" schema="dwa">
+    <column name="su_suppid"/>
+    <column name="su_stateid"/>
+    <column name="su_name"/>
+    <column name="su_street"/>
+    <column name="su_streetindex"/>
+    <column name="su_rebate"/>
+    <column name="su_acctbal"/>
+    <column name="su_indexhits"/>
+  </table>
+  <table name="label" schema="dwa">
+    <column name="l_labelid"/>
+    <column name="l_name"/>
+  </table>
+  <table name="fashionitem" schema="dwa">
+    <column name="f_fitemid"/>
+    <column name="f_name"/>
+    <column name="f_advice"/>
+  </table>
+  <table name="color" schema="dwa">
+    <column name="co_colorid"/>
+    <column name="co_name"/>
+  </table>
+  <table name="article" schema="dwa">
+    <column name="a_artid"/>
+    <column name="a_colorid"/>
+    <column name="a_fitemid"/>
+    <column name="a_designerid"/>
+    <column name="a_labelid"/>
+    <column name="a_package"/>
+    <column name="a_size"/>
+    <column name="a_stickerprice"/>
+    <column name="a_descr"/>
+  </table>
+  <table name="designer" schema="dwa">
+    <column name="d_designerid"/>
+    <column name="d_name"/>
+    <column name="d_stateid"/>
+  </table>
+  <table name="customer" schema="dwa">
+    <column name="c_custid"/>
+    <column name="c_name"/>
+    <column name="c_gender"/>
+    <column name="c_city"/>
+    <column name="c_stateid"/>
+    <column name="c_dob"/>
+    <column name="c_avgspending"/>
+    <column name="c_occupation"/>
+  </table>
+  <table name="order" schema="dwa">
+    <column name="o_orderid"/>
+    <column name="o_custid"/>
+    <column name="o_status"/>
+    <column name="o_date"/>
+    <column name="o_discount"/>
+    <column name="o_priority"/>
+    <column name="o_shipping"/>
+  </table>
+  <table name="inventory" schema="dwa">
+    <column name="i_artid"/>
+    <column name="i_suppid"/>
+    <column name="i_quantity"/>
+    <column name="i_descr"/>
+  </table>
+  <table name="partlist" schema="dwa">
+    <column name="p_orderid"/>
+    <column name="p_artid"/>
+    <column name="p_suppid"/>
+    <column name="p_quantity"/>
+    <column name="p_salediscount"/>
+    <column name="p_partstatus"/>
+    <column name="p_shipdate"/>
+    <column name="p_shipmode"/>
+  </table>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="geo"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="state"
+      dependentCardinality="n">
+    <parentColumn name="g_geoid" />
+    <dependentColumn name="s_geoid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="state"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="designer"
+      dependentCardinality="n">
+    <parentColumn name="s_stateid" />
+    <dependentColumn name="d_stateid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="state"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="supplier"
+      dependentCardinality="n">
+    <parentColumn name="s_stateid" />
+    <dependentColumn name="su_stateid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="state"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="customer"
+      dependentCardinality="n">
+    <parentColumn name="s_stateid" />
+    <dependentColumn name="c_stateid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="color"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="article"
+      dependentCardinality="n">
+    <parentColumn name="co_colorid" />
+    <dependentColumn name="a_colorid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="fashionitem"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="article"
+      dependentCardinality="n">
+    <parentColumn name="f_fitemid" />
+    <dependentColumn name="a_fitemid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="designer"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="article"
+      dependentCardinality="n">
+    <parentColumn name="d_designerid" />
+    <dependentColumn name="a_designerid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="label"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="article"
+      dependentCardinality="n">
+    <parentColumn name="l_labelid" />
+    <dependentColumn name="a_labelid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="article"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="inventory"
+      dependentCardinality="n">
+    <parentColumn name="a_artid" />
+    <dependentColumn name="i_artid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="supplier"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="inventory"
+      dependentCardinality="n">
+    <parentColumn name="su_suppid" />
+    <dependentColumn name="i_suppid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="customer"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="order"
+      dependentCardinality="n">
+    <parentColumn name="c_custid" />
+    <dependentColumn name="o_custid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="order"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="partlist"
+      dependentCardinality="n">
+    <parentColumn name="o_orderid" />
+    <dependentColumn name="p_orderid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="article"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="partlist"
+      dependentCardinality="n">
+    <parentColumn name="a_artid" />
+    <dependentColumn name="p_artid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="supplier"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="partlist"
+      dependentCardinality="n">
+    <parentColumn name="su_suppid" />
+    <dependentColumn name="p_suppid" />
+  </reference>
+
+  <reference referenceType="LEFTOUTER" isRuntimeJoin="true"
+      parentTableSchema="dwa" parentTableName="inventory"
+      parentCardinality="1"
+      dependentTableSchema="dwa" dependentTableName="partlist"
+      dependentCardinality="n">
+    <parentColumn name="i_artid" />
+    <parentColumn name="i_suppid" />
+    <dependentColumn name="p_artid" />
+    <dependentColumn name="p_suppid" />
+  </reference>
+
+</mart>
+
+</aqtmart:martModel>

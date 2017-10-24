@@ -1,0 +1,168 @@
+#!/bin/sh
+
+#  /**************************************************************************/
+#  /*                                                                        */
+#  /*  Licensed Materials - Property of IBM and/or HCL                       */
+#  /*                                                                        */
+#  /*  "Restricted Materials of IBM"                                         */
+#  /*                                                                        */
+#  /*  IBM Informix Dynamic Server                                           */
+#  /*  (c) Copyright IBM Corporation 2011 All rights reserved.               */
+#  /*  (c) Copyright HCL Technologies Ltd. 2017.  All Rights Reserved.       */
+#  /*                                                                        */
+#  /**************************************************************************/
+#
+#  Name        : runsql
+#  Created     : September 2017
+#  Description : Utility to run SQL query statements.
+#                Switch "-a" to turn on acceleration.
+#
+#  Usage       :
+#    runsql [-v[v]] [-a [-nofallback] | -p [-noexec]] [ -explain] [database [sqlfile]]
+#      -v : verbose, default: silent operation
+#      -vv : very verbose
+#      -a : accelerate, default: no acceleration
+#      -nofallback : do not execute by IDS (IWA execution or error)
+#      -p : probe queries (includes initial cleanup of old probing data)
+#      -noexec : don't execute queries (uses avoid_execute explain setting)
+#      -explain: turn on SQL Explain output to local file sqexplain.out
+#      database : database name, default: iwadb
+#      sqlfile : file containing SQL statements, default: read from stdin
+#
+
+DB_NAME=iwadb
+sqlfile=''
+usage=0
+verb=0
+accel=0
+probe=0
+noexec=0
+nofallback=0
+explain=0
+dbaccverb=''
+mytmp=tmp.$$.sql
+
+if [ "x$1" = "x-h" -o "x$1" = "x-?" ]; then
+  usage=1
+fi
+if [ "x$1" = "x-v" ]; then
+  verb=1
+  shift
+fi
+if [ "x$1" = "x-vv" ]; then
+  verb=2
+  dbaccverb=-e
+  shift
+fi
+if [ "x$1" = "x-a" ]; then
+  accel=1
+  shift
+fi
+if [ "x$1" = "x-p" ]; then
+  probe=1
+  shift
+fi
+if [ "x$1" = "x-noexec" ]; then
+  noexec=1
+  shift
+fi
+if [ "x$1" = "x-nofallback" ]; then
+  nofallback=1
+  shift
+fi
+if [ "x$1" = "x-explain" ]; then
+  explain=1
+  shift
+fi
+
+if [ ${accel} -gt 0 -a ${probe} -gt 0 ]; then
+  echo "Error: Options -a and -p are mutually exclusive."
+  usage=1
+fi
+if [ ${nofallback} -gt 0 -a ${accel} -eq 0 ]; then
+  echo "Error: Option -nofallback is only valid with option -a."
+  usage=1
+fi
+if [ ${noexec} -gt 0 -a ${probe} -eq 0 ]; then
+  echo "Error: Option -noexec is only valid with option -p."
+  usage=1
+fi
+
+if [ ${usage} -eq 1 ]; then
+  echo "Usage: $0 [-v[v]] [-a [-nofallback] | -p [-noexec]] [ -explain ] [database [sqlfile]]"
+  echo "  -v : verbose, default: silent operation"
+  echo "  -vv : very verbose"
+  echo "  -a : accelerate, default: no acceleration"
+  echo "  -nofallback : do not execute by IDS (IWA execution or error)"
+  echo "  -p : probe queries (includes initial cleanup of old probing data)"
+  echo "  -noexec: do not execute queries (uses avoid_execute explain setting)"
+  echo "  -explain: turn on SQL Explain output to local file sqexplain.out"
+  echo "  database : database name, default: iwadb"
+  echo "  sqlfile : file containing SQL statements, default: read from stdin"
+  exit 1
+fi
+
+if [ "x$1" != "x" ]; then
+  DB_NAME=$1
+fi
+if [ "x$2" != "x" ]; then
+  sqlfile=$2
+fi
+
+cat /dev/null > ${mytmp}
+if [ ${accel} -eq 1 ]; then
+  echo "set environment use_dwa 'accelerate on';" >> ${mytmp}
+fi
+if [ ${nofallback} -eq 1 ]; then
+  echo "set environment use_dwa 'fallback off';" >> ${mytmp}
+fi
+if [ ${verb} -gt 1 ]; then
+  echo "set environment use_dwa 'debug on';" >> ${mytmp}
+fi
+if [ ${probe} -eq 1 ]; then
+  echo "set environment use_dwa 'probe cleanup';" >> ${mytmp}
+  echo "set environment use_dwa 'probe start';" >> ${mytmp}
+fi
+if [ ${explain} -eq 1 ]; then
+  echo "set explain on;"  >> ${mytmp}
+fi
+if [ ${noexec} -eq 1 ]; then
+  echo "set explain on avoid_execute;"  >> ${mytmp}
+fi
+if [ "x${sqlfile}" = "x" ]; then
+  cat >> ${mytmp}
+else
+  cat ${sqlfile} >> ${mytmp}
+fi
+if [ ${noexec} -eq 1 -o ${explain} -eq 1 ]; then
+  echo "set explain off;"  >> ${mytmp}
+fi
+if [ ${probe} -eq 1 ]; then
+  echo "set environment use_dwa 'probe stop';" >> ${mytmp}
+fi
+
+if [ ${verb} -gt 1 ]; then
+  echo "PDQPRIORITY: ${PDQPRIORITY}"
+  echo "PSORT_DBTEMP: ${PSORT_DBTEMP}"
+  startdate=`date`
+  echo "Start: ${startdate}"
+fi
+
+cat ${mytmp} | eval dbaccess ${dbaccverb} ${DB_NAME} - \
+  > ${mytmp}.stdout 2>&1 
+
+if [ ${verb} -gt 0 ]; then
+  echo "--------------------"
+  cat ${mytmp}.stdout | egrep -v 'Database selected.|Database closed.' \
+    | awk '/^$/ {x++; if (x<2) {print $0}}; /./ {x=0; print $0}'
+  echo "--------------------"
+fi
+
+if [ ${verb} -gt 1 ]; then
+  echo "End: `date` (Start: ${startdate})"
+fi
+
+rm -f ${mytmp} ${mytmp}.stdout
+
+exit
+

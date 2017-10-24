@@ -1,0 +1,12 @@
+LOAD FROM geo.unl INSERT INTO geo;
+LOAD FROM state.unl INSERT INTO state;
+LOAD FROM label.unl INSERT INTO label;
+LOAD FROM designer.unl INSERT INTO designer;
+LOAD FROM color.unl INSERT INTO color;
+LOAD FROM fashionitem.unl INSERT INTO fashionitem;
+LOAD FROM article.unl INSERT INTO article;
+LOAD FROM supplier.unl INSERT INTO supplier;
+LOAD FROM inventory.unl INSERT INTO inventory;
+LOAD FROM customer.unl INSERT INTO customer;
+LOAD FROM order.unl INSERT INTO order;
+LOAD FROM partlist.unl INSERT INTO partlist;
